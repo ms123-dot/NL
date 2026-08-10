@@ -1,0 +1,8 @@
+{
+  "name": "AutoNews Curator",
+  "description": "AI-powered curation agent for Indian automotive weekly newsletters. Processes raw news and exports formatted Excel sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
