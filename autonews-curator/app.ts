@@ -1049,7 +1049,9 @@ function extractLocalDetailsForChunk(chunk: any[], rawText: string, allItemsList
       const endOfLine = rawText.indexOf("\n", idx);
       const line = rawText.slice(startOfLine, endOfLine !== -1 ? endOfLine : rawText.length);
 
-      if (!isTOCLine(line)) {
+      const lookahead = rawText.slice(idx, idx + 400).toLowerCase();
+      const hasSourceCreditNearby = lookahead.includes("source credit");
+      if (!isTOCLine(line) && hasSourceCreditNearby) {
         matchedPos = idx;
         break;
       }
@@ -1267,6 +1269,7 @@ MANDATORY EXTRACTION RULES (STRICT VERBATIM COMPLIANCE):
 - **PARAGRAPH BREAK PRESERVATION**: Always preserve the exact paragraph/line break structure from the raw uploaded news files using '\\n'. Do not merge lines or automatically reconstruct paragraphs into larger blocks. The text or body of the news stories must remain in the original small paragraph format as given in the raw uploaded documents.
 - **MISSING CONTENT MANDATE**: If any content is missing or inaccessible in the raw source text for a headline, explicitly state "Content not available" in the "fullText" field instead of guessing, hallucinating, or duplicating the headline.
 - **IGNORE THE TABLE OF CONTENTS**: The first few pages of the raw text contain a "Contents" table or index (e.g. lists of headlines with page numbers or dots). **DO NOT** match or extract from this table of contents. You must search further down in the raw text to locate the actual full body of the article which contains multiple full paragraphs of description.
+- **TOC FORMAT WARNING**: This newsletter's Table of Contents lists headlines as plain clickable navigation links with NO dot leaders and NO page numbers — do not assume a TOC entry always has dots or numbers. The correct occurrence of a headline is always the one immediately followed by a "Source Credit:" line. If a headline match is NOT followed by "Source Credit:" within the next few lines, it is a Table of Contents entry — skip it and use the next occurrence further down in the document instead.
 - **EXCLUDE RECOMMENDED ARTICLES & WEBSITE WIDGETS**: Do NOT capture or include unnecessary text, website navigation fragments, recommended articles, related story banners, or promotional/social widgets (e.g. "Also Read: ...", "Read More: ...", "► Tyres take centre stage...").
 - **SOURCE LINK RECOVERY**: Locate and extract the EXACT source link (URL) of this news story that is placed below or at the bottom of the news item's content. Reconstruct and heal the URL by merging broken pieces together if needed.
 - **ID MATCHING**: Make sure the "id" field in your output object exactly matches the "id" field of the input curated item from the queue.
