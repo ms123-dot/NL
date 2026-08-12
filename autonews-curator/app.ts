@@ -1,7 +1,7 @@
 import express from "express";
 import dns from "node:dns";
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
-import { CURATION_SYSTEM_PROMPT } from "./src/lib/constants";
+import { CURATION_SYSTEM_PROMPT } from "./src/lib/constants.js";
 import { formatToDDMMMYYYY_Spaced, formatSourceName } from "./src/lib/utils";
 
 // Force Node.js dns resolver to prefer IPv4 over IPv6. This prevents transient "fetch failed" / "connect ENETUNREACH" errors when contacting googleapis inside the sandboxed container.
