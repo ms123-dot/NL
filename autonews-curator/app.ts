@@ -483,9 +483,9 @@ function getRetryDelay(err: any): number {
 }
 
 const MODEL_CASCADE = [
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash"
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.6-flash"
 ];
 
 async function generateContentWithRetry(
@@ -500,7 +500,7 @@ async function generateContentWithRetry(
 ) {
   let attempt = 0;
   let delayMs = initialDelayMs;
-  let startModel = params.model || "gemini-2.5-flash";
+  let startModel = params.model || "gemini-3.5-flash";
 
   const modelQueue = [startModel, ...MODEL_CASCADE.filter(m => m !== startModel)];
   let modelIdx = 0;
@@ -592,7 +592,7 @@ Extracting fewer than 10 news items (e.g., only 3 or 4 items) is STRICTLY FORBID
     }
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: [
         {
           role: "user",
@@ -643,7 +643,7 @@ Return a JSON object with the additional extracted items.`;
 
       try {
         const secondResponse = await generateContentWithRetry(ai, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: [
             {
               role: "user",
@@ -819,7 +819,7 @@ ${file.content}
 `;
 
       const response = await generateContentWithRetry(ai, {
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash",
         contents: filePrompt,
         config: {
           systemInstruction: `${CURATION_SYSTEM_PROMPT}${duplicateAvoidancePrompt}`,
@@ -848,7 +848,7 @@ You MUST perform an exhaustive re-scan of "${file.name}" to extract AT LEAST 7 T
 
         try {
           const secondResponse = await generateContentWithRetry(ai, {
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             contents: retryPrompt,
             config: {
               systemInstruction: `${CURATION_SYSTEM_PROMPT}\n\nDo NOT repeat any of these already extracted headlines:\n${existingHeadlinesList.map((h: string) => `- "${h}"`).join("\n")}`,
@@ -946,7 +946,7 @@ ${rawText || ""}
 """`;
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a precise JSON generator that extracts news articles in their exact top-to-bottom original sequence, strictly preserves their exact categories as in the uploaded raw file, matches each with its source link, and summarizes each into a concise paragraph of strictly 3 to 4 lines/sentences capturing all important facts, numbers, and key information directly from the input.",
@@ -1288,7 +1288,7 @@ Return a JSON array of objects, one for each input curated item in this chunk, p
 
       try {
         const response = await generateContentWithRetry(ai, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3.5-flash",
           contents: prompt,
           config: {
             systemInstruction: "You are an extremely precise news compiler. For each curated item, you must locate its headline in the raw text, and copy-paste the COMPLETE verbatim text block that is written directly below that headline up until its source URL link. If a headline has been slightly truncated or has a trailing comma, match it intelligently to its actual full text block. You are STRICTLY FORBIDDEN from summarizing, shortening, truncating, paraphrasing, or fabricating any part of the text. Do NOT match or extract from the Table of Contents (TOC) at the beginning of the text which lists headlines with page numbers/dots; instead, locate the actual full article body situated further down in the document. Stick strictly to each specific headline, and paste its full content verbatim, preserving all original paragraph and line break structures of each story. Do not pull content from anywhere else. Ensure that there is absolutely no mismatch between headlines and their respective body text.",
