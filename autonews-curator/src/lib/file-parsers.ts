@@ -46,20 +46,27 @@ async function parsePDF(file: File): Promise<string> {
 
 async function parseDocx(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer });
-  return result.value;
+  const result = await mammoth.convertToHtml({ arrayBuffer });
+  return htmlToTextWithLinks(result.value);
 }
 
-async function parseExcel(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer);
-  let fullText = '';
+function htmlToTextWithLinks(html: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
 
-  workbook.SheetNames.forEach(sheetName => {
-    const worksheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-    fullText += (json as any[]).map(row => row.join('\t')).join('\n') + '\n';
+  // Replace every link with "visible text URL" so the URL stays in the plain text
+  doc.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if (href && !href.startsWith('#')) {
+      const textNode = doc.createTextNode(`${a.textContent} ${href}`);
+      a.replaceWith(textNode);
+    }
   });
 
-  return fullText;
+  // Preserve paragraph/line breaks
+  doc.querySelectorAll('p, br, li, tr, h1, h2, h3, h4, h5, h6').forEach(el => {
+    el.insertAdjacentText('afterend', '\n');
+  });
+
+  return (doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
 }
